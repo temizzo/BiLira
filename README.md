@@ -2,8 +2,13 @@
 
 Bu rehber, uygulamanızı kurmak için gerekli adımları açıklamaktadır. İki farklı environment bulunmaktadır:
 
-- **Test Environment**: Docker Compose kullanılarak çalıştırılacak.
-- **Production Environment**: Kubernetes cluster üzerinde çalışacak.
+- **Test Environment**: Docker Compose kullanılarak çalıştırılacak. Test için Test-Environment klasörü içerisinde
+```
+docker-compose up
+```
+yapmanız yeterli olacaktır.
+
+- **Production Environment**: Kubernetes cluster üzerinde çalışacak. Aşağıdaki dökümantasyon da Kubernetes Cluster için yönergeler içermektedir.
 
 ## Gereksinimler
 
