@@ -15,7 +15,9 @@ Kurulum öncesinde aşağıdaki yazılımlar bilgisayarınızda kurulu olmalıd�
 ## Adım 1: VirtualBox ve Vagrant Kurulumu
 
 1. VirtualBox ve Vagrant'ın en son sürümünü bilgisayarınıza indirin ve kurun.
+
 https://developer.hashicorp.com/vagrant/docs/installation
+
 https://www.virtualbox.org/wiki/Downloads
 
 
@@ -24,62 +26,75 @@ Kubernetes cluster'ımızı
 VagrantK8s klasörü içerisinden kuracağız.
 
 ### Vagrant Komutları
-1. Cluster'ımızı ilgili dizin içerisinde aşağıdaki komutu işleterek oluşturuyoruz.
-
+1. Cluster’ı oluşturmak için ilgili dizin içerisinde şu komutu çalıştırın:
+```
 vagrant up
+```
 
-2. KUBECONFIG'i Export ediyoruz ve Kubernetes Cluster'ımıza erişiyoruz.
+2. Kubernetes Cluster’a erişmek için KUBECONFIG’i export edin:
 
-Ya bu şekilde Export ederek erişebiliriz;
+```
 cd VagrantK8s
 cd configs
 export KUBECONFIG=$(pwd)/config
+```
+Alternatif olarak, ``` vagrant ssh ``` komutuyla controlplane içerisine giriş yapabilirsiniz:
 
-Ya da Vagrant Klasörü içerisinde ;
+3. Gerekli repository’yi controlplane içerisine klonlayın:
 
-vagrant ssh controlplane yaparak.
-
-3. git  ile repository'mizi controlplane içerisine çekiyoruz.
-
+```
 git clone https://github.com/temizzo/BiLira.git
+```
 
 
+## Adım 3: Longhorn Kurulumu ve UI Erişimi
 
-### 2.1: Longhorn Kurulumu
+### 3.1: Longhorn Kurulumu
 
-Aşağıdaki komutu çalıştırarak Longhorn'u cluster'a yükleyin:
+Aşağıdaki komut ile Longhorn’u Kubernetes cluster’ınıza yükleyin:
+```
+kubectl apply -f https://raw.githubusercontent.com/longhorn/longhorn/master/deploy/longhorn.yaml
+```
 
-'kubectl apply -f https://raw.githubusercontent.com/longhorn/longhorn/master/deploy/longhorn.yaml'
-
-### 2.2: Longhorn UI'ya Erişim
+### 3.2: Longhorn UI'ya Erişim
 Longhorn UI'ya erişim için iki worker node'da aşağıdaki adımları uygulayın:
 
-VirtualBox > Settings > Network > Adapter 1 > Advanced > Port Forwarding seçeneğine gidin.
-Yeni bir kural ekleyin:
-Protocol: TCP
-Host IP: Boş bırakabilirsiniz (ya da 127.0.0.1).
-Host Port: 30005
-Guest Port: 30005
-Artık host makinenizden http://localhost:30005 adresini kullanarak Longhorn UI'ya erişebilirsiniz.
+VirtualBox üzerinden aşağıdaki adımları takip edin:
 
-### Adım 3: Kafka ve Zookeeper Kurulumu
-### 3.1: Kafka Namespace Oluşturma
-Öncelikle Kafka için bir namespace oluşturun:
-'kubectl create namespace kafka'
+- Settings > Network > Adapter 1 > Advanced > Port Forwarding
+- Yeni bir kural ekleyin:
+   - Protocol: TCP
+   - Host Port: 30005
+   - Guest Port: 30005
 
-### 3.2: Zookeeper Persistent Volume Claim
-Zookeeper için Persistent Volume ve PVC oluşturmamız gerekecek.
+Tarayıcınızdan http://localhost:30005 adresine giderek Longhorn UI'ya erişebilirsiniz.
 
-'kubectl apply -f Infrastructure/KafkaStack/zookeper-pvc.yaml'
+## Adım 4: Kafka ve Zookeeper Kurulumu
 
-### 3.3: Zookeeper Helm Kurulumu
+
+### 4.1: Kafka Namespace Oluşturma
+
+Kafka için namespace oluşturun:
+```
+kubectl create namespace kafka
+```
+### 4.2: Zookeeper Persistent Volume Claim
+Zookeeper için PVC’yi oluşturmak adına aşağıdaki komutu çalıştırın:
+
+```
+kubectl apply -f Infrastructure/KafkaStack/zookeper-pvc.yaml
+```
+
+### 4.3: Zookeeper Helm Kurulumu
 
 Zookeeper'ı Helm ile kurun:
-
+```
 helm repo add bitnami https://charts.bitnami.com/bitnami
 helm repo list
 helm repo update
+```
 
+```
 helm install zookeeper bitnami/zookeeper -n kafka \
 --set replicaCount=1 \
 --set auth.enabled=false \
@@ -87,34 +102,41 @@ helm install zookeeper bitnami/zookeeper -n kafka \
 --set service.type=NodePort,service.clusterIP="" \
 --set nodeSelector."beta\\.kubernetes\\.io/os"=linux \
 --set persistence.existingClaim="zookeeper-pv-claim-0"
+```
 
-### 3.4: Kafka Helm Kurulumu
+### 4.4: Kafka Helm Kurulumu
 Kafka'yı kurmak için aşağıdaki komutu çalıştırın:
-
+```
 helm install kafka -n kafka rhcharts/kafka -f Infrastructure/KafkaStack/values-kafka.yaml
-
-### 3.5: Kafdrop Kurulumu
+```
+### 4.5: Kafdrop Kurulumu
 Kafdrop, Kafka'ya bağlanarak verileri görselleştirmemize olanak tanır. Aşağıdaki yaml dosyasını kullanarak Kafdrop'u kurun:
-'kubectl apply -f Infrastructure/KafkaStack/kaftdrop.yaml
+```
+kubectl apply -f Infrastructure/KafkaStack/kaftdrop.yaml
+```
 
-### 3.6: Kafdrop UI'ya Erişim
+### 4.6: Kafdrop UI'ya Erişim
 Kafdrop UI'ya erişim için iki worker node'da da şu adımları izleyin:
 
-VirtualBox > Settings > Network > Adapter 1 > Advanced > Port Forwarding seçeneğine gidin.
-Yeni bir kural ekleyin:
-Protocol: TCP
-Host IP: Boş bırakabilirsiniz (ya da 127.0.0.1).
-Host Port: 32560
-Guest Port: 32560
-Artık host makinenizden http://localhost:32560 adresine giderek Kafdrop UI'ya erişebilirsiniz.
+VirtualBox üzerinden Adapter1 (NAT) için Port Forwarding kuralını şu şekilde yapılandırın:
+ - Host Port: 32560
+ - Guest Port: 32560
 
-### Adım 4: MongoDB Kurulumu
-MongoDB'yi Helm ile kurmak için aşağıdaki adımları izleyin:
+Tarayıcınızdan http://localhost:32560 adresine giderek Kafdrop UI'ya erişebilirsiniz.
 
+### Adım 5: MongoDB Kurulumu
+MongoDB’yi Helm ile kurmak için şu adımları takip edin:
+
+
+1. Helm chart’ını ekleyin ve güncelleyin:
+```
 helm repo add bitnami https://charts.bitnami.com/bitnami
 helm repo update
-
+```
+2. MongoDB’yi kurun:
+```
 helm install mongodb -n mongodb -f Infrastructure/MongoDB/mongodb-values.yaml bitnami/mongodb
+```
 
 Bu adımlar ile MongoDB kurulumu tamamlanacaktır.
 
@@ -122,31 +144,101 @@ Uygulamalar
 Aşağıda, projenizin içerdiği ana bileşenler ve ilgili işlevler listelenmiştir:
 
 
-### Adım 4: Consumer-Listener-Producer'ın Helm Chart ile Kurulumu
+### Adım 6: Consumer-Listener-Producer'ın Helm Chart ile Kurulumu
+Aşağıdaki komut ile Helm Chart üzerinden uygulamayı kurun:
 
+```
 helm install  bilira ./BiliraHelmChart -n bilira --create-namespace
+```
 
 
-### Adım 5: Test Süreci
+### Adım 7: Uygulamaları Test Etme Süreci
+
+1. Listener pod’una erişmek için şu komutu çalıştırın:
+
+```
+kubectl exec -it <listener-bilira-pod-ismi> -n bilira -- /bin/bash
+```
+
+Not:
+```
+<listener-bilira-pod-ismi> 
+```
+yerine pod ismini yazmanız gerekiyor. 
+
+Pod ismini öğrenmek için şu komutu kullanabilirsiniz:
+
+```
+kubectl get pods -n bilira
+```
 
 
-Kafdrop UI üzerinden gördüğünüz Event'ları Listener Podu içerisinden cURL ile listeleyeğicez.
-Bunun için bilira Namespace'i içerisinde bulunan listener-bilira uygulamasının içine kubectl exec -it 
-ardından
+7.1  Tüm Event'leri Getirme
 
-Tüm Event'leri Getirme
+Tüm Event'leri listelemek için aşağıdaki cURL komutunu çalıştırın:
 
+```
 curl -X GET http://localhost:3000/api/events
+```
+Bu komut, listener servisi tarafından kaydedilen tüm Event'leri döner.
 
-EventType'a göre Filtreleme
+7.2 . EventType'a Göre Filtreleme
+Belirli bir Event türüne göre sonuçları filtrelemek için eventType parametresini kullanabilirsiniz:
 
-curl -X GET "http://localhost:3000/api/events?eventType=someEventType"
+```
+curl -X GET "http://localhost:3000/api/events?eventType=<eventType>" 
+```
+```
+<eventType> 
+```
+yerine filtrelemek istediğiniz Event türünü yazın.
 
-Tarih Aralığına Göre Filtreleme
+Örneğin:
+```
+curl -X GET "http://localhost:3000/api/events?eventType=payment_received"
+```
 
+Bu komut, yalnızca belirttiğiniz eventType ile eşleşen Event'leri döner.
+
+
+7.3 Tarih Aralığına Göre Filtreleme
+
+Event'leri belirli bir tarih aralığında listelemek için startTime ve endTime parametrelerini kullanabilirsiniz:
+
+```
+curl -X GET "http://localhost:3000/api/events?startTime=<start-date>&endTime=<end-date>"
+```
+```
+<start-date> ve <end-date>
+```
+yerine tarihleri ISO 8601 formatında belirtin.
+
+Örneğin:
+```
 curl -X GET "http://localhost:3000/api/events?startTime=2023-01-01T00:00:00Z&endTime=2023-12-31T23:59:59Z"
+```
 
-Sayfalama ile Event'leri Getirme
+Bu komut, yalnızca belirttiğiniz tarih aralığına denk gelen Event'leri döner.
 
+
+7.4  Sayfalama ile Event'leri Getirme
+Event'leri sayfa sayfa getirmek için page ve limit parametrelerini kullanabilirsiniz:
+
+```
+curl -X GET "http://localhost:3000/api/events?page=<page-number>&limit=<page-size>"
+```
+
+```
+<page-number> yerine görmek istediğiniz sayfa numarasını yazın.
+<page-size> yerine her sayfada kaç Event görmek istediğinizi yazın.
+```
+
+
+Örneğin:
+
+```
 curl -X GET "http://localhost:3000/api/events?page=1&limit=10"
+```
+
+Bu komut, belirttiğiniz sayfa numarasındaki Event'leri ve her sayfada görmek istediğiniz kadar sonucu döner.
 
