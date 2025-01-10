@@ -2,13 +2,8 @@
 
 Bu rehber, uygulamanızı kurmak için gerekli adımları açıklamaktadır. İki farklı environment bulunmaktadır:
 
-- **Test Environment**: Docker Compose kullanılarak çalıştırılacak. Test için Test-Environment klasörü içerisinde
-```
-docker-compose up
-```
-yapmanız yeterli olacaktır.
-
-- **Production Environment**: Kubernetes cluster üzerinde çalışacak. Aşağıdaki dökümantasyon da Kubernetes Cluster için yönergeler içermektedir.
+- **Test Environment**: Docker Compose kullanılarak çalıştırılacak.
+- **Production Environment**: Kubernetes cluster üzerinde çalışacak.
 
 ## Gereksinimler
 
@@ -60,7 +55,10 @@ Aşağıdaki komut ile Longhorn’u Kubernetes cluster’ınıza yükleyin:
 ```
 kubectl apply -f https://raw.githubusercontent.com/longhorn/longhorn/master/deploy/longhorn.yaml
 ```
-
+Service'i forward edin:
+```
+kubectl -n longhorn-system patch svc longhorn-frontend --type='json' -p '[{"op":"replace","path":"/spec/type","value":"NodePort"},{"op":"replace","path":"/spec/ports/0/nodePort","value":30005}]'
+```
 ### 3.2: Longhorn UI'ya Erişim
 Longhorn UI'ya erişim için iki worker node'da aşağıdaki adımları uygulayın:
 
@@ -112,6 +110,7 @@ helm install zookeeper bitnami/zookeeper -n kafka \
 ### 4.4: Kafka Helm Kurulumu
 Kafka'yı kurmak için aşağıdaki komutu çalıştırın:
 ```
+helm repo add rhcharts https://ricardo-aires.github.io/helm-charts/
 helm install kafka -n kafka rhcharts/kafka -f Infrastructure/KafkaStack/values-kafka.yaml
 ```
 ### 4.5: Kafdrop Kurulumu
@@ -140,16 +139,18 @@ helm repo update
 ```
 2. MongoDB’yi kurun:
 ```
-helm install mongodb -n mongodb -f Infrastructure/MongoDB/mongodb-values.yaml bitnami/mongodb
+helm install mongodb -n mongodb -f Infrastructure/MongoDB/mongodb-values.yaml bitnami/mongodb --create-namespace
 ```
 
 Bu adımlar ile MongoDB kurulumu tamamlanacaktır.
 
-Uygulamalar
-Aşağıda, projenizin içerdiği ana bileşenler ve ilgili işlevler listelenmiştir:
+
+## Adım 6: Uygulamalar
+
+Aşağıda, projenin içerdiği ana bileşenler ve ilgili işlevler listelenmiştir:
 
 
-### Adım 6: Consumer-Listener-Producer'ın Helm Chart ile Kurulumu
+### 6.1: Consumer-Listener-Producer'ın Helm Chart ile Kurulumu
 Aşağıdaki komut ile Helm Chart üzerinden uygulamayı kurun:
 
 ```
@@ -206,27 +207,7 @@ curl -X GET "http://localhost:3000/api/events?eventType=payment_received"
 Bu komut, yalnızca belirttiğiniz eventType ile eşleşen Event'leri döner.
 
 
-7.3 Tarih Aralığına Göre Filtreleme
-
-Event'leri belirli bir tarih aralığında listelemek için startTime ve endTime parametrelerini kullanabilirsiniz:
-
-```
-curl -X GET "http://localhost:3000/api/events?startTime=<start-date>&endTime=<end-date>"
-```
-```
-<start-date> ve <end-date>
-```
-yerine tarihleri ISO 8601 formatında belirtin.
-
-Örneğin:
-```
-curl -X GET "http://localhost:3000/api/events?startTime=2023-01-01T00:00:00Z&endTime=2023-12-31T23:59:59Z"
-```
-
-Bu komut, yalnızca belirttiğiniz tarih aralığına denk gelen Event'leri döner.
-
-
-7.4  Sayfalama ile Event'leri Getirme
+7.3  Sayfalama ile Event'leri Getirme
 Event'leri sayfa sayfa getirmek için page ve limit parametrelerini kullanabilirsiniz:
 
 ```
