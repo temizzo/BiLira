@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: producer-bilira
-          image: temizzo/producer-bilira:latest
+          image: temizzo/producer-bilira:stable
           imagePullPolicy: IfNotPresent
           envFrom:
             - configMapRef:
