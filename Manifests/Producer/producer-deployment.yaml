@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: producer-bilira
+  namespace: bilira
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: producer-bilira
+  template:
+    metadata:
+      labels:
+        app: producer-bilira
+    spec:
+      containers:
+        - name: producer-bilira
+          image: temizzo/producer-bilira:latest
+          imagePullPolicy: IfNotPresent
+          envFrom:
+            - configMapRef:
+                name: shared-config  
+          ports:
+            - containerPort: 3500
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi

@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "helmcharts.fullname" . }}-shared-config
+  labels:
+  {{- include "helmcharts.labels" . | nindent 4 }}
+data:
+  KAFKA_BROKER: {{ .Values.sharedConfig.kafkaBroker | quote }}
+  KAFKA_TOPIC: {{ .Values.sharedConfig.kafkaTopic | quote }}
+  LISTENER_PORT: {{ .Values.sharedConfig.listenerPort | quote }}
+  MONGO_URI: {{ .Values.sharedConfig.mongoUri | quote }}

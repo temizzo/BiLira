@@ -1,0 +1,62 @@
+##################################################
+# KAFDROP Deployment
+##################################################
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kadfdrop
+  namespace: kafka
+  labels:
+    app: kadfdrop
+    teams: kafkateam
+spec:
+  selector:
+    matchLabels:
+      app: kadfdrop
+  strategy:
+    type: Recreate
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: kadfdrop
+        teams: kafkateam
+    spec:
+      containers:
+        - image: obsidiandynamics/kafdrop
+          name: kadfdrop
+          resources:
+            limits:
+              memory: "4096Mi"
+              cpu: "2"
+            requests:
+              memory: "2048Mi"
+              cpu: "1"
+          env:
+          - name: KAFKA_BROKERCONNECT
+            value: kafka-0.kafka-headless.kafka.svc.cluster.local:9092
+
+          ports:
+            - containerPort: 9000
+              name: kafdrop
+---
+##################################################
+# KAFDROP Service
+##################################################
+apiVersion: v1
+kind: Service
+metadata:
+  name: kadfdrop-svc
+  namespace: kafka
+  labels:
+    app: kadfdrop
+    teams: kafkateam
+spec:
+  selector:
+    app: kadfdrop
+  ports:
+    - name: kafdrop
+      port: 9000
+      targetPort: 9000
+      nodePort: 32560
+  type: NodePort

@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "helmcharts.fullname" . }}-listener-bilira
+  labels:
+  {{- include "helmcharts.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.listenerBilira.replicas }}
+  selector:
+    matchLabels:
+      app: listener-bilira
+    {{- include "helmcharts.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        app: listener-bilira
+      {{- include "helmcharts.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+      - env:
+        - name: KUBERNETES_CLUSTER_DOMAIN
+          value: {{ quote .Values.kubernetesClusterDomain }}
+        envFrom:
+        - configMapRef:
+            name: {{ include "helmcharts.fullname" . }}-shared-config
+        image: {{ .Values.listenerBilira.listenerBilira.image.repository }}:{{ .Values.listenerBilira.listenerBilira.image.tag
+          | default .Chart.AppVersion }}
+        imagePullPolicy: {{ .Values.listenerBilira.listenerBilira.imagePullPolicy }}
+        name: listener-bilira
+        ports:
+        - containerPort: 3000
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "helmcharts.fullname" . }}-listener-bilira
+  labels:
+  {{- include "helmcharts.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.listenerBilira.type }}
+  selector:
+    app: listener-bilira
+    {{- include "helmcharts.selectorLabels" . | nindent 4 }}
+  ports:
+  {{- .Values.listenerBilira.ports | toYaml | nindent 2 }}

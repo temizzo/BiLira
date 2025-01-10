@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: listener-bilira
+  namespace: bilira
+spec:
+  selector:
+    app: listener-bilira
+  ports:
+    - protocol: TCP
+      port: 80        
+      targetPort: 3000 
+  type: ClusterIP

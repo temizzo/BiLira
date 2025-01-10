@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: consumer-bilira
+  namespace: bilira
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: consumer-bilira
+  template:
+    metadata:
+      labels:
+        app: consumer-bilira
+    spec:
+      containers:
+      - name: consumer-bilira
+        image: temizzo/consumer-bilira:latest
+        envFrom:
+          - configMapRef:
+              name: shared-config
+        ports:
+          - containerPort: 3000
+        resources:
+          limits:
+            memory: 1Gi
+          requests:
+            memory: 512Mi

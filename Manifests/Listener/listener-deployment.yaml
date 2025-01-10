@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: listener-bilira
+  namespace: bilira
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: listener-bilira
+  template:
+    metadata:
+      labels:
+        app: listener-bilira
+    spec:
+      containers:
+        - name: listener-bilira
+          image: temizzo/listener-bilira:latest
+          imagePullPolicy: IfNotPresent
+          envFrom:
+            - configMapRef:
+                name: shared-config
+          ports:
+            - containerPort: 3000
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File

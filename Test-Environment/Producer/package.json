@@ -1,0 +1,17 @@
+{
+  "name": "kafka-producer",
+  "version": "1.0.0",
+  "description": "A simple Kafka producer that sends random payload every 3 seconds",
+  "main": "index.js",
+  "dependencies": {
+    "kafkajs": "^2.0.0",
+    "faker": "^5.5.3",
+    "uuid": "^8.3.2"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "start": "node index.js"
+  },
+  "author": "",
+  "license": "ISC"
+}

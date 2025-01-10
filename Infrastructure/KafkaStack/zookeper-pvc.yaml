@@ -1,0 +1,19 @@
+
+##################################################
+# Zookeeper Persistent Volume Claim
+##################################################
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: zookeeper-pv-claim-0
+  namespace: kafka
+  labels:
+    app: zookeeper
+spec:
+  resources:
+    requests:
+      storage: 5Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: longhorn

@@ -1,0 +1,53 @@
+consumerBilira:
+  consumerBilira:
+    image:
+      repository: temizzo/consumer-bilira
+      tag: latest
+    resources:
+      limits:
+        memory: 1Gi
+      requests:
+        memory: 512Mi
+  ports:
+  - port: 3000
+    protocol: TCP
+    targetPort: 3000
+  replicas: 1
+  type: ClusterIP
+kubernetesClusterDomain: cluster.local
+listenerBilira:
+  listenerBilira:
+    image:
+      repository: temizzo/listener-bilira
+      tag: latest
+    imagePullPolicy: IfNotPresent
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 3000
+  replicas: 1
+  type: ClusterIP
+producerBilira:
+  producerBilira:
+    image:
+      repository: temizzo/producer-bilira
+      tag: stable
+    imagePullPolicy: IfNotPresent
+    resources:
+      limits:
+        cpu: "1"
+        memory: 1Gi
+      requests:
+        cpu: 250m
+        memory: 512Mi
+  ports:
+  - port: 3500
+    protocol: TCP
+    targetPort: 3500
+  replicas: 1
+  type: ClusterIP
+sharedConfig:
+  kafkaBroker: kafka-0.kafka-headless.kafka.svc.cluster.local:9092
+  kafkaTopic: event
+  listenerPort: "3000"
+  mongoUri: mongodb://root:123456@mongodb.mongodb.svc.cluster.local:27017/kafka-db

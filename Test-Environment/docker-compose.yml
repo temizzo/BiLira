@@ -1,0 +1,76 @@
+version: '3.8'
+
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.2.1
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - 2181:2181
+    networks:
+      - kafka-network
+
+  kafka:
+    image: confluentinc/cp-kafka:7.2.1
+    depends_on:
+      - zookeeper
+    ports:
+      - 9092:9092
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    networks:
+      - kafka-network
+
+  mongodb:
+    image: mongo:6.0
+    container_name: mongodb
+    ports:
+      - 27017:27017
+    networks:
+      - kafka-network
+
+  producer:
+    build:
+      context: ./Producer
+    environment:
+      KAFKA_BROKER: kafka:9092
+      KAFKA_TOPIC: event
+    depends_on:
+      - kafka
+    networks:
+      - kafka-network
+
+  consumer:
+    build:
+      context: ./Consumer
+    environment:
+      KAFKA_BROKER: kafka:9092
+      KAFKA_TOPIC: event
+      MONGO_URI: mongodb://mongodb:27017/kafka-db
+    depends_on:
+      - kafka
+      - mongodb
+    networks:
+      - kafka-network
+
+  list-app:
+    build:
+      context: ./Listener
+    environment:
+      MONGO_URI: mongodb://mongodb:27017/kafka-db
+      PORT: 3000
+    depends_on:
+      - mongodb
+    networks:
+      - kafka-network
+    ports:
+      - 3000:3000
+
+networks:
+  kafka-network:
+    driver: bridge
