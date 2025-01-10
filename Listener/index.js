@@ -9,7 +9,6 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// MongoDB bağlantısı
 mongoose
   .connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log('Connected to MongoDB'))
@@ -24,8 +23,8 @@ app.use(
         console.log(
           JSON.stringify({
             level: 'INFO',
-            path: message.trim().split(' ')[1], // Path'i logla
-            headers: JSON.stringify(this.headers), // Gelen istek header'larını logla
+            path: message.trim().split(' ')[1], 
+            headers: JSON.stringify(this.headers), 
           })
         );
       },
@@ -43,28 +42,22 @@ const eventSchema = new mongoose.Schema({
 
 const Event = mongoose.model('Event', eventSchema);
 
-// API Routes
-
-// 1. Tüm eventleri listele (Filtreleme, Tarih aralığı, ve Sayfalama desteklenir)
 app.get('/api/events', async (req, res) => {
   try {
     const { eventType, startTime, endTime, page = 1, limit = 10 } = req.query;
 
     const filter = {};
 
-    // Event Type ile filtreleme
     if (eventType) {
       filter.eventType = eventType;
     }
 
-    // Tarih aralığı ile filtreleme
     if (startTime || endTime) {
       filter.timestamp = {};
       if (startTime) filter.timestamp.$gte = new Date(startTime);
       if (endTime) filter.timestamp.$lte = new Date(endTime);
     }
 
-    // Sayfalama
     const skip = (page - 1) * limit;
     const events = await Event.find(filter).skip(skip).limit(parseInt(limit));
 

@@ -1,5 +1,5 @@
 function logMessage(message) {
-  console.log(JSON.stringify(message, null, 2));  // Log message in JSON format
+  console.log(JSON.stringify(message, null, 2));
 }
 
 module.exports = { logMessage };
