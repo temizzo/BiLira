@@ -39,7 +39,9 @@ Ya da Vagrant Klasörü içerisinde ;
 
 vagrant ssh controlplane yaparak.
 
-3. git  ya da wget ile repository'mizi controlplane içerisine çekiyoruz.
+3. git  ile repository'mizi controlplane içerisine çekiyoruz.
+
+git clone https://github.com/temizzo/BiLira.git
 
 
 
