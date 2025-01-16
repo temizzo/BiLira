@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: listener-bilira
-          image: temizzo/listener-bilira:latest
+          image: temizzo/listener-bilira:latest2
           imagePullPolicy: IfNotPresent
           envFrom:
             - configMapRef:
