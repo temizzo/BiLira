@@ -19,7 +19,7 @@ listenerBilira:
   listenerBilira:
     image:
       repository: temizzo/listener-bilira
-      tag: latest
+      tag: latest2
     imagePullPolicy: IfNotPresent
   ports:
   - port: 80

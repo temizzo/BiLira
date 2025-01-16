@@ -53,7 +53,6 @@ app.get('/api/events', async (req, res) => {
       filter.eventId = eventId;
     }
 
-
     if (startTime || endTime) {
       filter.timestamp = {};
       if (startTime) filter.timestamp.$gte = new Date(startTime);
