@@ -3,7 +3,6 @@ const mongoose = require('mongoose');
 const morgan = require('morgan');
 const dotenv = require('dotenv');
 
-// .env dosyasını yükle
 dotenv.config();
 
 const app = express();
@@ -14,7 +13,6 @@ mongoose
   .then(() => console.log('Connected to MongoDB'))
   .catch((err) => console.error('Failed to connect to MongoDB:', err));
 
-// Middleware
 app.use(express.json());
 app.use(
   morgan('combined', {
@@ -32,7 +30,6 @@ app.use(
   })
 );
 
-// Event Schema ve Model
 const eventSchema = new mongoose.Schema({
   eventId: { type: String, required: true },
   eventType: { type: String, required: true },
@@ -75,12 +72,10 @@ app.get('/api/events', async (req, res) => {
   }
 });
 
-// 404 Route
 app.use((req, res) => {
   res.status(404).json({ error: 'Not Found' });
 });
 
-// Uygulamayı başlat
 app.listen(PORT, () => {
   console.log(`List App running on http://localhost:${PORT}`);
 });
