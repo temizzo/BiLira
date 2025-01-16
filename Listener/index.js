@@ -41,13 +41,18 @@ const Event = mongoose.model('Event', eventSchema);
 
 app.get('/api/events', async (req, res) => {
   try {
-    const { eventType, startTime, endTime, page = 1, limit = 10 } = req.query;
+    const { eventType, eventId, startTime, endTime, page = 1, limit = 10 } = req.query;
 
     const filter = {};
 
     if (eventType) {
       filter.eventType = eventType;
     }
+
+    if (eventId) {
+      filter.eventId = eventId;
+    }
+
 
     if (startTime || endTime) {
       filter.timestamp = {};
